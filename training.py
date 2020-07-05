@@ -8,46 +8,33 @@ import os, cv2, gc
 X = []
 y = []
 
+classes = pd.read_excel('classes.xlsx')
+
 #Carregar fotos
-path ="./Saudaveis" #pega o caminho da pasta temporaria
+path ="./Photos" #pega o caminho da pasta
 photos = os.listdir(path) #pega todos arquivos que tem dentro dela
-for i,file in enumerate(photos):
-    frame = cv2.imread(path+'/'+file)
+for i, photo in enumerate(photos):
+    frame = cv2.imread(path+'/'+photo)
     resized_frame = cv2.resize(frame, (100, 50))
-    frameArray = resized_frame.flatten()
+    frameArray = resized_frame.flatten()#transforma a "matriz" em vetor
     X.append(frameArray)
-    y.append(0)
+    classe = classes.loc[classes['File'] == photo]['Binary.Label'].to_list()[0]#encontrar a foto no mapeamento de classes
+    y.append(classe)
     #limpar da memoria
     if (i % 20 == 0):
         gc.collect()
     print(i+1)
-    # if(i > 10):
-    #     break
+
 print(5*"\n*")
-print("\nACABOU DE CARREGAR AS IMAGENS SAUDAVEIS\n")
+print("\nACABOU DE CARREGAR AS IMAGENS\n")
 print(5*"*\n")
 
-#Carregar fotos
-path ="./Doentes" #pegando o caminho da pasta
-photos = os.listdir(path) #pega todos arquivos que tem dentro dela
-for i,file in enumerate(photos):
-    frame = cv2.imread(path+'/'+file)
-    resized_frame = cv2.resize(frame, (100, 50))
-    frameArray = resized_frame.flatten()
-    X.append(frameArray)
-    y.append(1)
-    #limpar memoria
-    if (i % 20 == 0):
-        gc.collect()
-    print(i+1)
-    # if(i > 10):
-    #     break
-print(5*"\n*")
-print("\nACABOU DE CARREGAR AS IMAGENS DOENTES\n")
-print(5*"*\n")
+y = pd.DataFrame(y)
+
+y.replace('healthy', 0, inplace=True)
+y.replace('unhealthy', 1, inplace=True)
 
 X = pd.DataFrame(X)
-
 gc.collect()
 print(5*"\n*")
 print("\nACABOU DE CARREGAR o DataFrame\n")
@@ -74,6 +61,9 @@ y_pred = clf.predict(X_test)
 print(accuracy_score(y_test,y_pred))
 print(confusion_matrix(y_test,y_pred))
 
+print(2*"\n*")
+print("\nResultado com PCA\n")
+print(2*"*\n")
 
 X_train, X_test, y_train, y_test = train_test_split(X_pca, y, test_size=0.15)
 
